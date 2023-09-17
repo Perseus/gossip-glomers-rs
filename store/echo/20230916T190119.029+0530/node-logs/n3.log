@@ -1,0 +1,3 @@
+Received: {"id":4,"src":"c4","dest":"n3","body":{"type":"init","node_id":"n3","node_ids":["n1","n2","n3","n4","n5"],"msg_id":1}}
+thread 'main' panicked at 'called `Result::unwrap()` on an `Err` value: Error("unknown variant `id`, expected `EchoRequest` or `InitRequest`", line: 1, column: 5)', src/node.rs:24:66
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
