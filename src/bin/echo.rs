@@ -12,9 +12,6 @@ enum EchoPayload {
 
 struct EchoNode {
     echo_message: String,
-    node_id: String,
-    node_ids: String,
-    sender: std::sync::mpsc::Sender<Event<EchoPayload, ()>>,
 }
 
 impl Node<(), EchoPayload> for EchoNode {
@@ -28,9 +25,6 @@ impl Node<(), EchoPayload> for EchoNode {
     {
         Ok(Self {
             echo_message: "".to_string(),
-            node_id: init.node_id,
-            node_ids: init.node_ids.join(","),
-            sender: inject,
         })
     }
 
