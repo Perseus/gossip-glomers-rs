@@ -5,36 +5,71 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
-enum Payload {
+enum EchoPayload {
     Echo { echo: String },
     EchoOk { echo: String },
 }
 
 struct EchoNode {
-    id: usize,
+    echo_message: String,
+    node_id: String,
+    node_ids: String,
+    sender: std::sync::mpsc::Sender<Event<EchoPayload, ()>>,
 }
 
-impl Node<(), Payload> for EchoNode {
+impl Node<(), EchoPayload> for EchoNode {
     fn from_init(
         state: (),
         init: Init,
-        inject: std::sync::mpsc::Sender<Event<Payload, ()>>,
+        inject: std::sync::mpsc::Sender<Event<EchoPayload, ()>>,
     ) -> anyhow::Result<Self>
     where
         Self: Sized,
     {
-        Ok(Self { id: 1 })
+        Ok(Self {
+            echo_message: "".to_string(),
+            node_id: init.node_id,
+            node_ids: init.node_ids.join(","),
+            sender: inject,
+        })
     }
 
     fn step(
-            &mut self,
-            input: Event<Payload, ()>,
-            output: &mut std::io::StdoutLock,
-        ) -> anyhow::Result<()> {
+        &mut self,
+        input: Event<EchoPayload, ()>,
+        output: &mut std::io::StdoutLock,
+    ) -> anyhow::Result<()> {
+        match input {
+            Event::Message(message) => {
+                match message.body.payload {
+                    EchoPayload::Echo { echo } => {
+                        self.echo_message = echo;
+                        let message_id = message.body.id;
+                        let message = Message {
+                            src: message.src,
+                            dest: message.dest,
+                            body: Body {
+                                id: message.body.id,
+                                in_reply_to: message.body.in_reply_to,
+                                payload: EchoPayload::EchoOk {
+                                    echo: self.echo_message.clone(),
+                                },
+                            },
+                        };
+
+                        message.into_reply(Some(&mut message_id.unwrap())).send(output)?;
+                    }
+                    EchoPayload::EchoOk { echo } => {}
+                }
+            },
+
+            Event::Injected(injected) => {},
+            Event::EOF => {}
+        }
         Ok(())
     }
 }
 
 fn main() -> anyhow::Result<()> {
-    Ok(())
+    main_loop::<(), EchoNode, EchoPayload, ()>(())
 }

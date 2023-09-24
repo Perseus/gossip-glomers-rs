@@ -5,16 +5,15 @@ use std::io::{BufRead, StdoutLock, Write};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message<Payload> {
     pub src: String,
-    #[serde(rename = "dest")]
-    pub dst: String,
+    pub dest: String,
     pub body: Body<Payload>,
 }
 
 impl<Payload> Message<Payload> {
     pub fn into_reply(self, id: Option<&mut usize>) -> Self {
         Self {
-            src: self.dst,
-            dst: self.src,
+            src: self.dest,
+            dest: self.src,
             body: Body {
                 id: id.map(|id| {
                     let mid = *id;
@@ -109,8 +108,8 @@ where
         Node::from_init(init_state, init, tx.clone()).context("node initilization failed")?;
 
     let reply = Message {
-        src: init_msg.dst,
-        dst: init_msg.src,
+        src: init_msg.dest,
+        dest: init_msg.src,
         body: Body {
             id: Some(0),
             in_reply_to: init_msg.body.id,
