@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::io::{BufRead, StdoutLock, Write};
+pub mod uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message<Payload> {
